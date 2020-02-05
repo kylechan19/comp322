@@ -8,40 +8,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-int* binaryNums[];
-
 void readFile(char *filename){
-    int i, arrLength;
-    arrLength = 0;
+    int i;
     FILE* fp = NULL;
     fp = fopen(*filename, "r");
 
-    /* This method will read the file twice. 
-        The first pass is to determine the size of the input for array allocation
-        The second pass will record the file data into the array */
+    /* Read the entire file eight characters at a time.
+        Convert these from char -> int, store each integer into an array, pad with zeroes if necessary
+        Print the eight integers for output.
+        Binary to integer conversion.
+        Output the conversion.
+        Output corresponding ascii value, if possible.
+        Repeat for until EOF. */
 
     /* Checks if the file was found. */
     if(fp == NULL)
     {
-        /* Filename was not found, closes the file pointer */
+        /* Filename was not found, close the file */
         printf("File not found. Please manually input data.");
         fclose(fp);
 
         /* Switch to manual input */
         inputData();
     }
+    
     else
     {
-        /* Obtain a character count for array allocation. */
-        while(feof(fp))
-        {
-            /* Ignore spaces and \n */
-            if(fgetc(fp) != ' ' || fgetc != '\n')
-            {
-                arrLength++;
-            }
-        }
-
+        
     }
     
 }
