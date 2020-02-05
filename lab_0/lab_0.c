@@ -12,8 +12,7 @@
 char *eightBytes;
 
 void readFile(char *filename){
-    int inLength, filedes, 
-        readingBinNum;
+    int inPos, filedes, readingBinNum;
 
     // Init. file stuff.
     FILE* fp = NULL;
@@ -87,9 +86,8 @@ void readFile(char *filename){
                 {
                     readingBinNum = 0;
                     inPos = 0;
-                    /* ???
-                        processData();
-                        */
+                    processData();
+                    
                 }
                 
             }
@@ -106,7 +104,11 @@ void inputData(){
 }
 
 void processData(){
+    int i, decimalNum;
 
+    decimalNum = binaryToDecimal();
+    output(decimalNum);
+    
 }
 
 void reInitArr(){
@@ -122,17 +124,24 @@ void reInitArr(){
     }
 }
 
-void binaryToDecimal(){
+int binaryToDecimal(){
+    int i;
+    int sum = 0;
 
+    for(i = 7; i >= 0; i--)
+    {
+        
+    }
+
+    return sum;
 }
 
-void output(){
+void output(int decimalNum){
 
 }
 
 int main(int argc, char *argv[]){
 
-    output();
     // Determine if manual input should happen 
     /*
     if(argc < 2 || argv[2] == "-.txt")
@@ -144,8 +153,7 @@ int main(int argc, char *argv[]){
     {
         readFile(argv[2]);
     }
-    
-    
     */
+    
     return 0;
 }
