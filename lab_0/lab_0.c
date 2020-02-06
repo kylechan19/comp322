@@ -7,29 +7,65 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 // declare global vars
-char *eightBytes;
+char eightChars[8];
 
-void readFile(char *filename){
-    int inPos, filedes, readingBinNum;
+// There are 33 unprintable ASCII values
+//  0-31, and 127
+//  each representation has a maximum length of 3
+char** unprintables[33][3] = {
+    {'N', 'U', 'L'}, {'S', 'O', 'H'}, {'S', 'T', 'X'}, {'E', 'T', 'X'},
+    {'E', 'O', 'T'}, {'E', 'N', 'Q'}, {'A', 'C', 'K'}, {'B', 'E', 'L'},
+    {'B', 'S', '\0'}, {'T', 'A', 'B'}, {'L', 'F', '\0'}, {'V', 'T', '\0'},
+    {'F', 'F', '\0'}, {'C', 'R', '\0'}, {'S', 'O', '\0'}, {'S', 'I', '\0'},
+    {'D', 'L', 'E'}, {'D', 'C', '1'}, {'D', 'C', '2'}, {'D', 'C', '3'},
+    {'D', 'C', '4'}, {'N', 'A', 'K'}, {'S', 'Y', 'N'}, {'E', 'T', 'B'},
+    {'C', 'A', 'N'}, {'E', 'M', '\0'}, {'S', 'U', 'B'}, {'E', 'S', 'C'},
+    {'F', 'S', '\0'}, {'G', 'S', '\0'}, {'R', 'S', '\0'}, {'U', 'S', '\0'},
+    {'D', 'E', 'L'}
+}
+
+void reInitArr(){
+    /* Method description:
+        Re-initializes values in eightChars[] to all '0'.
+        Used for handling consecutive series of 1's and 0's
+            since only one series of eight characters
+            is processed at any given time. */
+    int i;
+    for(i = 0; i < 8; i++)
+    {
+        eightChars[i] = '0';
+    }
+}
+
+int binaryToDecimal(){
+    int i;
+    double sum = 0.0;
+    
+    for(i = 1; i <= 7; i++)
+    {
+        /* Index starting at eightChars[1] to only process the 7 chars in the 
+            unextended ascii format */
+        if(eightChars[i] == '1')
+            sum += pow((double) 2, (double)(7 - i));
+    }
+    
+    return (int) sum;
+}
+
+void inputData(){
+    printf("inputDatalul()\n");
+}
+
+void readFile(char* filename){
+    int inPos, filedes, readingBinNum, binToInt;
+    char c;
 
     // Init. file stuff.
-    FILE* fp = NULL;
-    fp = fopen(*filename, "r");
-
-    /* Process
-        Read the entire file one character at a time.
-        Store each char into an array that holds a maximum of eight chars, 
-            pad with zeroes if necessary.
-        Print the eight chars for "Original" output.
-        Convert the eight chars -> ascii values.
-        Turn the ascii values into either 1 or 0 through subtraction.
-        Binary number conversion to decimal. (Ignoring the first bit.)
-        Print ascii char for "ASCII" output.
-        Print decimal number for "Decimal" output.
-        Print parity
-        Repeat until EOF. */
+    FILE* fp;
+    fp = fopen(filename, "r");
 
     // Checks if the file was found.
     if(fp == NULL)
@@ -37,27 +73,27 @@ void readFile(char *filename){
         // Filename was not found, close the file
         printf("File not found. Please manually input data.");
 
-        // Switch to manual input 
+        // Close file and switch to manual input 
+        fclose(fp);
         inputData();
     }
 
     else
     {
-        // Init. array
-        eightBytes = (char *)malloc(8 * sizeof(char));
-
         // Obtain file descriptor
         filedes = fileno(fp);
 
-        /* Buffer the read char to filter possible spaces and 
-            newlines at the beginning of data */
-        char c;
+        // Buffer the read char to filter possible spaces and 
+        //    newlines at the beginning of data 
         read(filedes, &c, 1);
 
-        /* Init. boolean value for read loop. 
-            readingBinNum is the toggle to switch between 
-            reading '0' or '1', and ' ' or '\n' */
+        // Init. boolean value for read loop. 
+        //    readingBinNum is the toggle to switch between 
+        //    reading '0' or '1', and ' ' or '\n' 
         readingBinNum = (c == ' ' || c == '\n') ? 0 : 1;
+        
+        // Flush eightChars[] because idk how array values are init. by default.
+        reInitArr();
 
         // Read until EOF
         while(c != -1)
@@ -73,87 +109,77 @@ void readFile(char *filename){
                 // Get the next char.
                 read(filedes, &c, 1);
 
-                /* If the next char is a '0' or '1', 
-                    put it in eightBytes[] to be processed later. 
-                    Otherwise, stop reading characters and process 
-                    what is currently in eightBytes[] */
+                // If the next char is a '0' or '1', 
+                //    put it in eightChars[] to be processed later. 
+                //    Otherwise, stop reading characters and process 
+                //    what is currently in eightChars[] 
                 if(c == '0' || c == '1')
                 {
-                    eightBytes[inPos] = c;
+                    eightChars[inPos] = c;
                 }
 
+                // Process and output data.
                 else
                 {
+                    // Reset local variables.
                     readingBinNum = 0;
                     inPos = 0;
-                    processData();
-                    
+
+                    // Convert to binary
+                    binToInt = binaryToDecimal();
+
+                    // Send converted value to be printed.
+                    output(binToInt);
+
+                    // Flush eightChars[].
+                    reInitArr();
                 }
                 
             }
             
         }
-        
+
+        // Close the file
+        fclose(fp);
     } 
-    // Close the file
-    fclose(fp);
-}
-
-void inputData(){
-
-}
-
-void processData(){
-    int i, decimalNum;
-
-    decimalNum = binaryToDecimal();
-    output(decimalNum);
-    
-}
-
-void reInitArr(){
-    /* Method description:
-        Re-initializes eightBytes[] to all '0'.
-        Used for handling multiple series of 1's and 0's
-            since only one series of eight characters
-            is processed at any given time. */
-    int i;
-    for(i = 0; i < 8; i++)
-    {
-        eightBytes[i] = '0';
-    }
-}
-
-int binaryToDecimal(){
-    int i;
-    int sum = 0;
-
-    for(i = 7; i >= 0; i--)
-    {
-        
-    }
-
-    return sum;
 }
 
 void output(int decimalNum){
+    int i;
+    char asciiVal;
+    char* unprintable;
+
+    // Print original
+    for(i = 0; i < 8; i++){
+        printf("%c", eightChars[i]);
+    }
+    // Check if we read an unprintable ASCII val.
+    if(decimalNum <= 31 || decimalNum == 127){
+        (decimalNum == 127) ? unprintable = unprintables[32] : unprintable = unprintables[decimalNum];
+    }
+    printf("        ");
+    printf("%c", asciiVal)
 
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char** argv){
 
     // Determine if manual input should happen 
-    /*
-    if(argc < 2 || argv[2] == "-.txt")
+    
+    if(argc < 2 || *argv[2] == '-')
     {
+        printf("Original ASCII    Decimal  Parity/n
+         -------- -------- -------- --------\n");
         inputData();
     }
 
     else
     {
+        printf("Original ASCII    Decimal  Parity/n
+         -------- -------- -------- --------\n");
         readFile(argv[2]);
     }
-    */
+    
     
     return 0;
 }
