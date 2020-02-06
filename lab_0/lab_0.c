@@ -15,7 +15,8 @@ char eightChars[8];
 // There are 33 unprintable ASCII values
 //  0-31, and 127
 //  each representation has a maximum length of 3
-char** unprintables[33][3] = {
+/*
+char* unprintables[33][3] = {
     {'N', 'U', 'L'}, {'S', 'O', 'H'}, {'S', 'T', 'X'}, {'E', 'T', 'X'},
     {'E', 'O', 'T'}, {'E', 'N', 'Q'}, {'A', 'C', 'K'}, {'B', 'E', 'L'},
     {'B', 'S', ' '}, {'T', 'A', 'B'}, {'L', 'F', ' '}, {'V', 'T', ' '},
@@ -25,7 +26,17 @@ char** unprintables[33][3] = {
     {'C', 'A', 'N'}, {'E', 'M', ' '}, {'S', 'U', 'B'}, {'E', 'S', 'C'},
     {'F', 'S', ' '}, {'G', 'S', ' '}, {'R', 'S', ' '}, {'U', 'S', ' '},
     {'D', 'E', 'L'}
-}
+    
+}; */
+
+char* unprintables[] = {
+    "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
+    " BS", "TAB", " LF", " VT", " FF", " CR", " SO", " SI",
+    "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
+    "CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
+    "DEL"
+};
+
 
 void reInitArr(){
     /* Method description:
@@ -53,6 +64,56 @@ int binaryToDecimal(){
     }
     
     return (int) sum;
+}
+
+void output(int decimalNum){
+    int i, j, parity, numSpaces, unprintIndex;
+    char asciiVal;
+    //char* unprintable[3];
+
+    // Determine parity, 0: even, 1: odd
+    parity = decimalNum % 2;
+
+    // Print original
+    for(i = 0; i < 8; i++)
+    {
+        printf("%c", eightChars[i]);
+    }
+
+    // Check if we read an unprintable ASCII val.
+    if(decimalNum <= 31 || decimalNum == 127)
+    {
+        // assign pointer for unprintable
+        //*unprintable = (decimalNum == 127) ? unprintables[32] : unprintables[decimalNum];
+
+        // Print unprintable ASCII val., according to "man ascii".
+        //printf("      %3c", *unprintable[0], *unprintable[1], *unprintable[2]);
+        unprintIndex = (decimalNum == 127) ? 32 : decimalNum;
+        printf("      %s", unprintables[unprintIndex]);
+    }
+
+    else
+    {
+        // Print the printable ASCII val.
+        asciiVal = (char) decimalNum;
+        printf("        %c", asciiVal);
+    }
+
+    // Print decimal value.
+    if(decimalNum < 10)
+        numSpaces = 8;
+    else if(decimalNum < 100)
+        numSpaces = 7;
+    else
+        numSpaces = 6;
+    for(j = 0; j < numSpaces; j++)
+    {
+        printf(" ");
+    }
+    printf("%d ", decimalNum);
+
+    // Print parity
+    (parity == 0) ? printf("EVEN\n") : printf("ODD\n");
 }
 
 void inputData(){
@@ -92,7 +153,7 @@ void readFile(char* filename){
         //    reading '0' or '1', and ' ' or '\n' 
         readingBinNum = (c == ' ' || c == '\n') ? 0 : 1;
         
-        // Flush eightChars[] because idk how array values are init. by default.
+        // Init. eightChars[] because idk how array values are init. by default.
         reInitArr();
 
         // Read until EOF
@@ -144,74 +205,26 @@ void readFile(char* filename){
     } 
 }
 
-void output(int decimalNum){
-    int i, j, parity, numSpaces;
-    char asciiVal;
-    char* unprintable[3];
-
-    // Determine parity, 0: even, 1: odd
-    parity = decimalNum % 2;
-
-    // Print original
-    for(i = 0; i < 8; i++)
-    {
-        printf("%c", eightChars[i]);
-    }
-
-    // Check if we read an unprintable ASCII val.
-    if(decimalNum <= 31 || decimalNum == 127)
-    {
-        // assign pointer for unprintable
-        unprintable = (decimalNum == 127) ? unprintables[32] : unprintables[decimalNum];
-
-        // Print unprintable ASCII val. according to "man ascii".
-        printf("      ");
-        printf("%c%c%c", unprintable[0], unprintable[1], unprintable[2]);
-    }
-
-    else
-    {
-        // Print the printable ASCII val.
-        asciiVal = (char) decimalVal;
-        printf("        ");
-        printf("%c", asciiVal);
-    }
-
-    // Print decimal value.
-    if(decimalNum < 10)
-        numSpaces = 8;
-    else if(decimalNum < 100)
-        numSpaces = 7;
-    else
-        numSpaces = 6;
-    for(j = 0; j < numSpaces; j++)
-    {
-        printf(' ');
-    }
-    printf("%d", decimalVal);
-
-    // Print parity
-    (parity == 0) ? printf("EVEN\n") : printf("ODD\n");
-}
-
 int main(int argc, char** argv){
 
     // Determine if manual input should happen 
-    
+    /*
     if(argc < 2 || &argv[2] == '-')
     {
         inputData();
-        printf("Original ASCII    Decimal  Parity/n
-         -------- -------- -------- --------\n");
+        printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
     }
 
     else
     {
-        printf("Original ASCII    Decimal  Parity/n
-         -------- -------- -------- --------\n");
+        printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
         readFile(argv[2]);
     }
+    */
+    int dec = 0;
+    printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
     
+    output(dec);
     
     return 0;
 }
