@@ -9,26 +9,14 @@
 #include <string.h>
 #include <math.h>
 
+#include <time.h>
+
 // declare global vars
 char eightChars[8];
 
 // There are 33 unprintable ASCII values
 //  0-31, and 127
 //  each representation has a maximum length of 3
-/*
-char* unprintables[33][3] = {
-    {'N', 'U', 'L'}, {'S', 'O', 'H'}, {'S', 'T', 'X'}, {'E', 'T', 'X'},
-    {'E', 'O', 'T'}, {'E', 'N', 'Q'}, {'A', 'C', 'K'}, {'B', 'E', 'L'},
-    {'B', 'S', ' '}, {'T', 'A', 'B'}, {'L', 'F', ' '}, {'V', 'T', ' '},
-    {'F', 'F', ' '}, {'C', 'R', ' '}, {'S', 'O', ' '}, {'S', 'I', ' '},
-    {'D', 'L', 'E'}, {'D', 'C', '1'}, {'D', 'C', '2'}, {'D', 'C', '3'},
-    {'D', 'C', '4'}, {'N', 'A', 'K'}, {'S', 'Y', 'N'}, {'E', 'T', 'B'},
-    {'C', 'A', 'N'}, {'E', 'M', ' '}, {'S', 'U', 'B'}, {'E', 'S', 'C'},
-    {'F', 'S', ' '}, {'G', 'S', ' '}, {'R', 'S', ' '}, {'U', 'S', ' '},
-    {'D', 'E', 'L'}
-    
-}; */
-
 char* unprintables[] = {
     "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
     " BS", "TAB", " LF", " VT", " FF", " CR", " SO", " SI",
@@ -36,7 +24,6 @@ char* unprintables[] = {
     "CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
     "DEL"
 };
-
 
 void reInitArr(){
     /* Method description:
@@ -65,13 +52,19 @@ int binaryToDecimal(){
     return (int) sum;
 }
 
+int getParity(){
+    int parity, i;
+    for(i = 0; i < 8; i++)
+    {
+        if(eightChars[i] == '1')
+            parity++;
+    }
+    return parity % 2;
+}
+
 void output(int decimalNum){
     int i, j, parity, numSpaces, unprintIndex;
     char asciiVal;
-    //char* unprintable[3];
-
-    // Determine parity, 0: even, 1: odd
-    parity = decimalNum % 2;
 
     // Print original
     for(i = 0; i < 8; i++)
@@ -82,11 +75,6 @@ void output(int decimalNum){
     // Check if we read an unprintable ASCII val.
     if(decimalNum <= 31 || decimalNum == 127)
     {
-        // assign pointer for unprintable
-        //*unprintable = (decimalNum == 127) ? unprintables[32] : unprintables[decimalNum];
-
-        // Print unprintable ASCII val., according to "man ascii".
-        //printf("      %3c", *unprintable[0], *unprintable[1], *unprintable[2]);
         unprintIndex = (decimalNum == 127) ? 32 : decimalNum;
         printf("      %s", unprintables[unprintIndex]);
     }
@@ -99,12 +87,18 @@ void output(int decimalNum){
     }
 
     // Print decimal value.
+    // Only one digit to print.
     if(decimalNum < 10)
         numSpaces = 8;
+
+    // Two digits.
     else if(decimalNum < 100)
         numSpaces = 7;
+
+    // A WHOPPING THREE DIGITS.
     else
         numSpaces = 6;
+        
     for(j = 0; j < numSpaces; j++)
     {
         printf(" ");
@@ -112,6 +106,7 @@ void output(int decimalNum){
     printf("%d ", decimalNum);
 
     // Print parity
+    parity = getParity();
     (parity == 0) ? printf("EVEN\n") : printf("ODD\n");
 }
 
@@ -148,12 +143,19 @@ void readFile(char* filename){
 
         while(read(filedes, &bytesRead, 1) > 0)
         {
-            printf("Bytes read while: %d\n", bytesRead);
+            /*printf("Currently reading: %c\n", (char)bytesRead);
+            printf("readingBinNum: %d\n", readingBinNum);
+            printf("inPos: %d\n", inPos);
+            sleep(1);
+            */
+
             c = (char) bytesRead;
             readingBinNum = (c == '0' || c == '1') ? 1 : 0;
 
             if(readingBinNum && inPos < 8)
             {
+                //printf("Added '%c' to eightChars[%d]\n", c, inPos);
+
                 // Insert c into the next position in eightBytes[].
                 eightChars[inPos++] = c;
             }
@@ -161,6 +163,8 @@ void readFile(char* filename){
             //  enough binary nums or a non '1' or '0' byte was read.
             if(inPos == 8)
             {
+                //printf("eightChars full. Converting. \n");
+
                 // Convert to binary
                 binToInt = binaryToDecimal();
 
@@ -172,14 +176,30 @@ void readFile(char* filename){
                 inPos = 0;
             }
             // Only the last series of 1's and 0's could possibly have less length less than 8.
-            else if(bytesRead <= 0 && inPos > 0)
+            //  break out after outputting result
+            else if(inPos > 0 && !readingBinNum)
             {
+                //printf("do we even get here \n");
+
                 // Convert to binary
                 binToInt = binaryToDecimal();
 
                 // Send converted value to be printed.
                 output(binToInt);
+                inPos = 0;
+                break;
             }
+        }
+
+        // Edge case where the last readable char is the last byte in the file
+        // At this point, bytesRead should be <=0, so it is safe to only check inPos
+        if(inPos > 0)
+        {
+            // Convert to binary
+            binToInt = binaryToDecimal();
+
+            // Send converted value to be printed.
+            output(binToInt);
         }
    } 
     // Close the file
