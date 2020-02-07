@@ -62,7 +62,6 @@ int binaryToDecimal(){
         if(eightChars[i] == '1')
             sum += pow((double) 2, (double)(7 - i));
     }
-    
     return (int) sum;
 }
 
@@ -121,8 +120,9 @@ void inputData(){
 }
 
 void readFile(char* filename){
-    int inPos, filedes, readingBinNum, binToInt;
-    char c;
+    int inPos, filedes, readingBinNum, binToInt, bytesRead;
+    char c = ' ';
+    inPos = 0;
 
     // Init. file stuff.
     FILE* fp;
@@ -132,99 +132,74 @@ void readFile(char* filename){
     if(fp == NULL)
     {
         // Filename was not found, close the file
-        printf("File not found. Please manually input data.");
+        printf("File not found. Please manually input data:\n");
 
-        // Close file and switch to manual input 
-        fclose(fp);
+        // Switch to manual input.
         inputData();
     }
 
     else
     {
-        // Obtain file descriptor
-        filedes = fileno(fp);
-
-        // Buffer the read char to filter possible spaces and 
-        //    newlines at the beginning of data 
-        read(filedes, &c, 1);
-
-        // Init. boolean value for read loop. 
-        //    readingBinNum is the toggle to switch between 
-        //    reading '0' or '1', and ' ' or '\n' 
-        readingBinNum = (c == ' ' || c == '\n') ? 0 : 1;
-        
         // Init. eightChars[] because idk how array values are init. by default.
         reInitArr();
 
-        // Read until EOF
-        while(c != -1)
+        // Obtain file descriptor
+        filedes = fileno(fp);
+
+        while(read(filedes, &bytesRead, 1) > 0)
         {
-            while(!readingBinNum && c != -1)
+            printf("Bytes read while: %d\n", bytesRead);
+            c = (char) bytesRead;
+            readingBinNum = (c == '0' || c == '1') ? 1 : 0;
+
+            if(readingBinNum && inPos < 8)
             {
-                read(filedes, &c, 1);
-                readingBinNum = (c == ' ' || c == '\n') ? 0 : 1;
+                // Insert c into the next position in eightBytes[].
+                eightChars[inPos++] = c;
             }
-
-            for(inPos = 0; readingBinNum && inPos < 8; inPos++)
+            // Process and output data if we finished reading 
+            //  enough binary nums or a non '1' or '0' byte was read.
+            if(inPos == 8)
             {
-                // Get the next char.
-                read(filedes, &c, 1);
+                // Convert to binary
+                binToInt = binaryToDecimal();
 
-                // If the next char is a '0' or '1', 
-                //    put it in eightChars[] to be processed later. 
-                //    Otherwise, stop reading characters and process 
-                //    what is currently in eightChars[] 
-                if(c == '0' || c == '1')
-                {
-                    eightChars[inPos] = c;
-                }
+                // Send converted value to be printed.
+                output(binToInt);
 
-                // Process and output data.
-                else
-                {
-                    // Reset local variables.
-                    readingBinNum = 0;
-                    inPos = 0;
-
-                    // Convert to binary
-                    binToInt = binaryToDecimal();
-
-                    // Send converted value to be printed.
-                    output(binToInt);
-
-                    // Flush eightChars[].
-                    reInitArr();
-                }
-                
+                // Flush eightChars[] and get next binary value.
+                reInitArr();
+                inPos = 0;
             }
-            
+            // Only the last series of 1's and 0's could possibly have less length less than 8.
+            else if(bytesRead <= 0 && inPos > 0)
+            {
+                // Convert to binary
+                binToInt = binaryToDecimal();
+
+                // Send converted value to be printed.
+                output(binToInt);
+            }
         }
-
-        // Close the file
-        fclose(fp);
-    } 
+   } 
+    // Close the file
+    fclose(fp);
 }
 
 int main(int argc, char** argv){
 
     // Determine if manual input should happen 
-    /*
-    if(argc < 2 || &argv[2] == '-')
+    if(argc < 2 || *argv[1] == '-')
     {
-        inputData();
         printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
+        inputData();
     }
 
     else
     {
         printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
-        readFile(argv[2]);
+        readFile(argv[1]);
     }
-    */
-    int dec = 0;
-    printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
-    
-    output(dec);
-    
+
     return 0;
 }
