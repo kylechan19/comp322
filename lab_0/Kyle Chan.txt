@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-https://github.com/kylechan19/comp322/tree/master/lab_0
+https://github.com/kylechan19/comp322
 
 Student email: kyle.chan.871@my.csun.edu 
 
