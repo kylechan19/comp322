@@ -13,6 +13,7 @@
 
 // declare global vars
 char eightChars[8];
+int inputSize = 200;
 
 // There are 33 unprintable ASCII values
 //  0-31, and 127
@@ -24,8 +25,7 @@ char *unprintables[] = {
     "CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
     "DEL"};
 
-void reInitArr()
-{
+void reInitArr(){
     // Re-initializes values in eightChars[] to all '0'.
     int i;
     for (i = 0; i < 8; i++)
@@ -34,8 +34,7 @@ void reInitArr()
     }
 }
 
-int binaryToDecimal()
-{
+int binaryToDecimal(){
     int i;
     double sum = 0.0;
 
@@ -49,8 +48,7 @@ int binaryToDecimal()
     return (int)sum;
 }
 
-int getParity()
-{
+int getParity(){
     int parity, i;
     for (i = 0; i < 8; i++)
     {
@@ -60,8 +58,7 @@ int getParity()
     return parity % 2;
 }
 
-void output(int decimalNum)
-{
+void output(int decimalNum){
     int i, j, parity, numSpaces, unprintIndex;
     char asciiVal;
 
@@ -109,9 +106,8 @@ void output(int decimalNum)
     (parity == 0) ? printf("EVEN\n") : printf("ODD\n");
 }
 
-void inputData()
-{
-    char input[200];
+void inputData(){
+    char input[inputSize];
     int i, binToInt, readingBinNum, inPos;
     i = 0;
     inPos = 0;
@@ -174,8 +170,7 @@ void inputData()
     }
 }
 
-void readFile(char *filename)
-{
+void readFile(char *filename){
     int filedes, bytesRead, readingBinNum, inPos, binToInt;
     char c = ' ';
     inPos = 0;
@@ -258,8 +253,7 @@ void readFile(char *filename)
     fclose(fp);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
 
     // Determine if manual input should happen
     if (argc < 2 || *argv[1] == '-')
