@@ -9,8 +9,6 @@
 #include <string.h>
 #include <math.h>
 
-//#include <time.h>
-
 // declare global vars
 char eightChars[8];
 int inputSize = 200;
