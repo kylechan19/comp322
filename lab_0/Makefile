@@ -1,6 +1,7 @@
 <<<<<<< HEAD
-lab_0: lab_0.c
-	gcc -o lab_0 lab_0.c -Wall -Wextra
+ALL:
+	gcc -c lab_0.c -Wall -Wextra
+	gcc -o lab_0 lab_0.o -lm
 =======
 lab_0: lab_0.c
 	gcc -o lab_0 lab_0.c -Wall -Wextra
