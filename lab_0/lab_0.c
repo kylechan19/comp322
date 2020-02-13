@@ -4,24 +4,29 @@
     8 Feburary, 2020 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <math.h>
 
 // declare global vars
 char eightChars[8];
-int inputSize = 200;
 
-// There are 33 unprintable ASCII values
-//  0-31, and 127
-//  each representation has a maximum length of 3
+// There are 34 unprintable ASCII values
+//  0-31, 'space', and 127
 char *unprintables[] = {
     "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
     " BS", "TAB", " LF", " VT", " FF", " CR", " SO", " SI",
     "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
     "CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
-    "DEL"};
+    "space", "DEL"};
+
+void CRASHER(){
+    // Gracefully exit prog.
+    printf("Invalid input.\n");
+    printf("End of lab_0.");
+    exit(0);
+}
 
 void reInitArr(){
     // Re-initializes values in eightChars[] to all '0'.
@@ -57,7 +62,7 @@ int getParity(){
 }
 
 void output(int decimalNum){
-    int i, j, parity, numSpaces, unprintIndex;
+    int i, j, parity, numSpaces;
     char asciiVal;
 
     // Print original
@@ -67,12 +72,19 @@ void output(int decimalNum){
     }
 
     // Check if we read an unprintable ASCII val.
-    if (decimalNum <= 31 || decimalNum == 127)
-    {
-        unprintIndex = (decimalNum == 127) ? 32 : decimalNum;
-        printf("      %s", unprintables[unprintIndex]);
+    if (decimalNum <= 31)
+    {   
+        printf("      %s", unprintables[decimalNum]);
     }
-
+    // space char.
+    else if(decimalNum == 32)
+    {
+        printf("    %s", unprintables[decimalNum]);
+    }
+    else if(decimalNum == 127)
+    {
+        printf("      %s", unprintables[33]);
+    }
     else
     {
         // Print the printable ASCII val.
@@ -104,130 +116,120 @@ void output(int decimalNum){
     (parity == 0) ? printf("EVEN\n") : printf("ODD\n");
 }
 
-void inputData(){
-    char input[inputSize];
-    int i, binToInt, readingBinNum, inPos;
-    i = 0;
+void inputData(int argc, char **argv){
+    int argPt, inPos, binToInt, arrIndex;
+    char c;
     inPos = 0;
+    arrIndex = 0;
+    argPt = (*argv[1] == '-') ? 2 : 1;
 
-    char c = ' ';
-    reInitArr();
-    printf("Enter data: \n");
-    gets(input);
     printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
-
-    // Process input.
-    while (input[i] != '\0')
+    // Read strings until we come upon end of cmd input or invalid input.
+    while(argPt < argc)
     {
-        c = input[i++];
-        readingBinNum = (c == '0' || c == '1') ? 1 : 0;
+        // Read characters until end of string or invalid input
+        while(argv[argPt][arrIndex] != '\0'){
 
-        if (readingBinNum && inPos < 8)
-        {
-            // Insert c into the next position in eightBytes[].
-            eightChars[inPos++] = c;
+            c = argv[argPt][arrIndex];
+            if(c == '1' || c == '0')
+            {
+                if(inPos < 8)
+                {
+                    // Insert c into the next position in eightBytes[].
+                    eightChars[inPos++] = c;
+                }
+
+                // eightChars is full, begin proccessing
+                if (inPos == 8)
+                {
+                    // Send converted value to be printed.
+                    binToInt = binaryToDecimal();
+                    output(binToInt);
+
+                    // Flush eightChars[] and get next binary value, if possible.
+                    reInitArr();
+                    inPos = 0;
+                }
+            }
+            // Invalid input
+            else
+            {
+                CRASHER();
+            }
+
+            // Move to next char in string
+            arrIndex++;
         }
-
-        // Process and output data if we finished reading
-        //  enough binary nums or a non '1' or '0' byte was read.
-        if (inPos == 8)
+        
+        // End of string
+        // This is where padding of zeroes on the right would happen
+        if(inPos > 0)
         {
-            // Convert to binary
-            binToInt = binaryToDecimal();
-
             // Send converted value to be printed.
+            binToInt = binaryToDecimal();
             output(binToInt);
 
             // Flush eightChars[] and get next binary value.
             reInitArr();
             inPos = 0;
         }
-        // Only the last series of 1's and 0's could possibly have less length less than 8.
-        //  break out after outputting result
-        else if (inPos > 0 && !readingBinNum)
-        {
-            // Convert to binary
-            binToInt = binaryToDecimal();
 
-            // Send converted value to be printed.
-            output(binToInt);
-
-            // Flush eightChars[] and get next binary value.
-            reInitArr();
-            inPos = 0;
-        }
-    }
-
-    if (inPos > 0)
-    {
-        // Convert to binary
-        binToInt = binaryToDecimal();
-
-        // Send converted value to be printed.
-        output(binToInt);
+        // Move to next val in argv
+        argPt++;
+        arrIndex = 0;
     }
 }
 
-void readFile(char *filename){
-    int filedes, bytesRead, readingBinNum, inPos, binToInt;
+int readFile(char *filename){
+    int filedes, bytesRead, inPos, binToInt;
     char c = ' ';
     inPos = 0;
 
-    // Init. file stuff.
-    FILE *fp;
-    fp = fopen(filename, "r");
+    // Init. eightChars[] because idk how array values are init. by default.
+    reInitArr();
 
-    // Checks if the file was found.
-    if (fp == NULL)
-    {
-        // Filename was not found, close the file
-        printf("File not found. Please manually input data:\n");
+    // Get file descriptor.
+    filedes = open(filename, O_RDONLY);
 
-        // Switch to manual input.
-        inputData();
+    // file not found
+    if(filedes == -1){
+        printf("No file found. Checking argv for input...\n");
+        return 0;
     }
 
-    else
+    printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
+    // Read characters until we come upon end of file or invalid input.
+    while(read(filedes, &bytesRead, 1) > 0)
     {
-        // Init. eightChars[] because idk how array values are init. by default.
-        reInitArr();
-
-        // Obtain file descriptor
-        filedes = fileno(fp);
-
-        // Filter data for binary values.
-        while (read(filedes, &bytesRead, 1) > 0)
+        c = (char)bytesRead;
+        if(c == '1' || c == '0')
         {
-            c = (char)bytesRead;
-            readingBinNum = (c == '0' || c == '1') ? 1 : 0;
-
-            if (readingBinNum && inPos < 8)
+            if(inPos < 8)
             {
                 // Insert c into the next position in eightBytes[].
                 eightChars[inPos++] = c;
             }
-            // Process and output data if we finished reading
-            //  enough binary nums or a non '1' or '0' byte was read.
+
+            // eightChars is full, begin proccessing
             if (inPos == 8)
             {
-                // Convert to binary
-                binToInt = binaryToDecimal();
-
                 // Send converted value to be printed.
+                binToInt = binaryToDecimal();
                 output(binToInt);
 
-                // Flush eightChars[] and get next binary value.
+                // Flush eightChars[] and get next binary value, if possible.
                 reInitArr();
                 inPos = 0;
             }
-            // Only the last series of 1's and 0's could possibly have less length less than 8.
-            //  break out after outputting result
-            else if (inPos > 0 && !readingBinNum)
-            {
-                // Convert to binary
-                binToInt = binaryToDecimal();
+        }
 
+        else if(c == ' ' || c == '\n')
+        {
+            // This is where padding of zeroes on the right would happen
+            if(inPos > 0)
+            {
                 // Send converted value to be printed.
+                binToInt = binaryToDecimal();
                 output(binToInt);
 
                 // Flush eightChars[] and get next binary value.
@@ -235,34 +237,48 @@ void readFile(char *filename){
                 inPos = 0;
             }
         }
+
+        // Invalid input
+        else // It's the case that (c != '0' || c != '1' || c != ' ' || c != '\n')
+        {
+            CRASHER();
+        }
     }
 
     // Edge case where the last readable char is the last byte in the file
-    // At this point, bytesRead should be <=0, so it is safe to only check inPos
     if (inPos > 0)
     {
-        // Convert to binary
-        binToInt = binaryToDecimal();
-
         // Send converted value to be printed.
+        binToInt = binaryToDecimal();
         output(binToInt);
     }
     // Close the file
-    fclose(fp);
+    close(filedes);
+    return 1;
 }
 
 int main(int argc, char **argv){
-
-    // Determine if manual input should happen
-    if (argc < 2 || *argv[1] == '-')
+    int readFileSuccess;
+    // check for no args
+    if (argc < 2)
     {
-        inputData();
+        // exit prog.
+        CRASHER();
     }
 
+    // Check if input received from cmd
+    else if(*argv[1] == '-' || *argv[1] != '\0')
+    {
+        // Try reading a file first.
+        readFileSuccess = readFile(argv[1]);
+
+        // If successful, end prog., otherwise, attempt to read cmd line for input.
+        readFileSuccess == 1 ? printf("End of lab_0") : inputData(argc, argv);
+    }
     else
     {
-        printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
-        readFile(argv[1]);
+        // exit prog.
+        CRASHER();
     }
 
     return 0;
