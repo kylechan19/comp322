@@ -1,7 +1,7 @@
 /*  Kyle Chan
     comp 322 Wed
     Lab 0: Making Sense of Ones and Zeros 
-    8 Feburary, 2020 */
+    15 Feburary, 2020 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +22,7 @@ char *unprintables[] = {
     "space", "DEL"};
 
 void CRASHER(){
-    // Gracefully exit prog.
+    // Gracefully exit prog. upon receiving invalid input.
     printf("Invalid input.\n");
     printf("End of lab_0.");
     exit(0);
@@ -43,15 +43,17 @@ int binaryToDecimal(){
 
     for (i = 1; i <= 7; i++)
     {
-        /* Index starting at eightChars[1] to only process the 7 chars in the 
-            unextended ascii format */
+        /* Index starting at eightChars[1] to only process the 7 chars from left to right
+            in the unextended ascii format. This is where the math.h library is used for
+            the sake of readability. */
         if (eightChars[i] == '1')
-            sum += pow((double)2, (double)(7 - i));
+            sum += pow(2.0, (double)(7 - i));
     }
     return (int)sum;
 }
 
 int getParity(){
+    // Determines if an even or odd amount of 1's were read.
     int parity, i;
     for (i = 0; i < 8; i++)
     {
@@ -63,36 +65,37 @@ int getParity(){
 
 void output(int decimalNum){
     int i, j, parity, numSpaces;
-    char asciiVal;
 
-    // Print original
+    // Print original characters read.
     for (i = 0; i < 8; i++)
     {
         printf("%c", eightChars[i]);
     }
 
-    // Check if we read an unprintable ASCII val.
+    // Check for unprintable ASCII values.
     if (decimalNum <= 31)
     {   
         printf("      %s", unprintables[decimalNum]);
     }
-    // space char.
     else if(decimalNum == 32)
     {
+        // space char.
         printf("    %s", unprintables[decimalNum]);
     }
     else if(decimalNum == 127)
     {
+        // DEL
         printf("      %s", unprintables[33]);
     }
     else
     {
         // Print the printable ASCII val.
-        asciiVal = (char)decimalNum;
-        printf("        %c", asciiVal);
+        printf("        %c", (char)decimalNum);
     }
 
-    // Print decimal value.
+    /* Print decimal value. These checks are for formatting the 
+        decimal value with the correct amount of spaces. */
+
     // Only one digit to print.
     if (decimalNum < 10)
         numSpaces = 8;
@@ -105,6 +108,7 @@ void output(int decimalNum){
     else
         numSpaces = 6;
 
+    // Prin the spaces.
     for (j = 0; j < numSpaces; j++)
     {
         printf(" ");
@@ -127,15 +131,17 @@ void inputData(int argc, char **argv){
     // Read strings until we come upon end of cmd input or invalid input.
     while(argPt < argc)
     {
-        // Read characters until end of string or invalid input
+        // Read characters until end of string or invalid input.
         while(argv[argPt][arrIndex] != '\0'){
 
+            // Retrieve the character from argv then check if it is valid input.
             c = argv[argPt][arrIndex];
             if(c == '1' || c == '0')
             {
+                // It's the case that eightChars[] is NOT full.
                 if(inPos < 8)
                 {
-                    // Insert c into the next position in eightBytes[].
+                    // Insert c into the next position in eightChars[].
                     eightChars[inPos++] = c;
                 }
 
@@ -162,7 +168,7 @@ void inputData(int argc, char **argv){
         }
         
         // End of string
-        // This is where padding of zeroes on the right would happen
+        // This is where padding of zeroes on the right would happen.
         if(inPos > 0)
         {
             // Send converted value to be printed.
@@ -239,13 +245,13 @@ int readFile(char *filename){
         }
 
         // Invalid input
-        else // It's the case that (c != '0' || c != '1' || c != ' ' || c != '\n')
+        else
         {
             CRASHER();
         }
     }
 
-    // Edge case where the last readable char is the last byte in the file
+    // Edge case where the last readable char is the last byte in the file.
     if (inPos > 0)
     {
         // Send converted value to be printed.
