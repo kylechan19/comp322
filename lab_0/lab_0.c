@@ -21,13 +21,6 @@ char *unprintables[] = {
     "CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
     "space", "DEL"};
 
-void CRASHER(){
-    // Gracefully exit prog. upon receiving invalid input.
-    printf("Invalid input.\n");
-    printf("End of lab_0.");
-    exit(0);
-}
-
 void reInitArr(){
     // Re-initializes values in eightChars[] to all '0'.
     int i;
@@ -121,10 +114,11 @@ void output(int decimalNum){
 }
 
 void inputData(int argc, char **argv){
-    int argPt, inPos, binToInt, arrIndex;
+    int argPt, inPos, binToInt, arrIndex, receivedInvalidInput;
     char c;
     inPos = 0;
     arrIndex = 0;
+    receivedInvalidInput = 0;
     argPt = (*argv[1] == '-') ? 2 : 1;
 
     printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
@@ -160,7 +154,9 @@ void inputData(int argc, char **argv){
             // Invalid input
             else
             {
-                CRASHER();
+                printf("Invalid input.\n");
+                receivedInvalidInput = 1;
+                break;
             }
 
             // Move to next char in string
@@ -169,7 +165,7 @@ void inputData(int argc, char **argv){
         
         // End of string
         // This is where padding of zeroes on the right would happen.
-        if(inPos > 0)
+        if(inPos > 0 && !receivedInvalidInput)
         {
             // Send converted value to be printed.
             binToInt = binaryToDecimal();
@@ -187,9 +183,10 @@ void inputData(int argc, char **argv){
 }
 
 int readFile(char *filename){
-    int filedes, bytesRead, inPos, binToInt;
+    int filedes, bytesRead, inPos, binToInt, receivedInvalidInput;
     char c = ' ';
     inPos = 0;
+    receivedInvalidInput = 0;
 
     // Init. eightChars[] because idk how array values are init. by default.
     reInitArr();
@@ -247,12 +244,14 @@ int readFile(char *filename){
         // Invalid input
         else
         {
-            CRASHER();
+            printf("Invalid input.\n");
+            receivedInvalidInput = 1;
+            break;
         }
     }
 
     // Edge case where the last readable char is the last byte in the file.
-    if (inPos > 0)
+    if (inPos > 0 && !receivedInvalidInput)
     {
         // Send converted value to be printed.
         binToInt = binaryToDecimal();
@@ -269,23 +268,24 @@ int main(int argc, char **argv){
     if (argc < 2)
     {
         // exit prog.
-        CRASHER();
+        printf("No args found.\n");
     }
 
-    // Check if input received from cmd
+    // Check if input received from cmd, ignores empty input
     else if(*argv[1] == '-' || *argv[1] != '\0')
     {
         // Try reading a file first.
         readFileSuccess = readFile(argv[1]);
 
         // If successful, end prog., otherwise, attempt to read cmd line for input.
-        readFileSuccess == 1 ? printf("End of lab_0") : inputData(argc, argv);
+        readFileSuccess == 1 ? printf("Read from file: %s \n", argv[1]) : inputData(argc, argv);
     }
     else
     {
-        // exit prog.
-        CRASHER();
+        // Invalid input
+        printf("Invalid input.\n");
     }
 
+    printf("End of lab_0.");
     return 0;
 }
