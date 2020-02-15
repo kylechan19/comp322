@@ -21,21 +21,21 @@ char *unprintables[] = {
     "CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
     "space", "DEL"};
 
-void reInitArr(){
+void reInitArr() 
+{
     // Re-initializes values in eightChars[] to all '0'.
     int i;
-    for (i = 0; i < 8; i++)
-    {
+    for (i = 0; i < 8; i++) {
         eightChars[i] = '0';
     }
 }
 
-int binaryToDecimal(){
+int binaryToDecimal() 
+{
     int i;
     double sum = 0.0;
 
-    for (i = 1; i <= 7; i++)
-    {
+    for (i = 1; i <= 7; i++) {
         /* Index starting at eightChars[1] to only process the 7 chars from left to right
             in the unextended ascii format. This is where the math.h library is used for
             the sake of readability. */
@@ -45,43 +45,39 @@ int binaryToDecimal(){
     return (int)sum;
 }
 
-int getParity(){
+int getParity() 
+{
     // Determines if an even or odd amount of 1's were read.
     int parity, i;
-    for (i = 0; i < 8; i++)
-    {
+    for (i = 0; i < 8; i++) {
         if (eightChars[i] == '1')
             parity++;
     }
     return parity % 2;
 }
 
-void output(int decimalNum){
+void output(int decimalNum) 
+{
     int i, j, parity, numSpaces;
 
     // Print original characters read.
-    for (i = 0; i < 8; i++)
-    {
+    for (i = 0; i < 8; i++) {
         printf("%c", eightChars[i]);
     }
 
     // Check for unprintable ASCII values.
-    if (decimalNum <= 31)
-    {   
+    if (decimalNum <= 31) {   
         printf("      %s", unprintables[decimalNum]);
     }
-    else if(decimalNum == 32)
-    {
+    else if (decimalNum == 32) {
         // space char.
         printf("    %s", unprintables[decimalNum]);
     }
-    else if(decimalNum == 127)
-    {
+    else if (decimalNum == 127) {
         // DEL
         printf("      %s", unprintables[33]);
     }
-    else
-    {
+    else {
         // Print the printable ASCII val.
         printf("        %c", (char)decimalNum);
     }
@@ -102,8 +98,7 @@ void output(int decimalNum){
         numSpaces = 6;
 
     // Prin the spaces.
-    for (j = 0; j < numSpaces; j++)
-    {
+    for (j = 0; j < numSpaces; j++) {
         printf(" ");
     }
     printf("%d ", decimalNum);
@@ -113,7 +108,8 @@ void output(int decimalNum){
     (parity == 0) ? printf("EVEN\n") : printf("ODD\n");
 }
 
-void inputData(int argc, char **argv){
+void inputData(int argc, char **argv) 
+{
     int argPt, inPos, binToInt, arrIndex, receivedInvalidInput;
     char c;
     inPos = 0;
@@ -125,25 +121,22 @@ void inputData(int argc, char **argv){
 
     printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
     // Read strings until we come upon end of cmd input or invalid input.
-    while(argPt < argc)
-    {
+    while (argPt < argc) {
         // Read characters until end of string or invalid input.
-        while(argv[argPt][arrIndex] != '\0'){
+        while (argv[argPt][arrIndex] != '\0') {
 
             // Retrieve the character from argv then check if it is valid input.
             c = argv[argPt][arrIndex];
-            if(c == '1' || c == '0')
-            {
+            if (c == '1' || c == '0') {
+
                 // It's the case that eightChars[] is NOT full.
-                if(inPos < 8)
-                {
+                if (inPos < 8) {
                     // Insert c into the next position in eightChars[].
                     eightChars[inPos++] = c;
                 }
 
                 // eightChars is full, begin proccessing
-                if (inPos == 8)
-                {
+                if (inPos == 8) {
                     // Send converted value to be printed.
                     binToInt = binaryToDecimal();
                     output(binToInt);
@@ -153,9 +146,9 @@ void inputData(int argc, char **argv){
                     inPos = 0;
                 }
             }
+
             // Invalid input
-            else
-            {
+            else {
                 printf("Invalid input.\n");
                 receivedInvalidInput = 1;
                 break;
@@ -167,8 +160,7 @@ void inputData(int argc, char **argv){
         
         // End of string
         // This is where padding of zeroes on the right would happen.
-        if(inPos > 0 && !receivedInvalidInput)
-        {
+        if (inPos > 0 && !receivedInvalidInput) {
             // Send converted value to be printed.
             binToInt = binaryToDecimal();
             output(binToInt);
@@ -184,7 +176,8 @@ void inputData(int argc, char **argv){
     }
 }
 
-int readFile(char *filename){
+int readFile(char *filename)
+{
     int filedes, bytesRead, inPos, binToInt, receivedInvalidInput;
     char c = ' ';
     inPos = 0;
@@ -197,27 +190,25 @@ int readFile(char *filename){
     filedes = open(filename, O_RDONLY);
 
     // file not found
-    if(filedes == -1){
+    if (filedes == -1) {
         printf("No file found.\n");
         return 0;
     }
 
     printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
     // Read characters until we come upon end of file or invalid input.
-    while(read(filedes, &bytesRead, 1) > 0)
-    {
+    while (read(filedes, &bytesRead, 1) > 0) {
+
         c = (char)bytesRead;
-        if(c == '1' || c == '0')
-        {
-            if(inPos < 8)
-            {
+        // Check for valid input.
+        if (c == '1' || c == '0') {
+            if (inPos < 8) {
                 // Insert c into the next position in eightBytes[].
                 eightChars[inPos++] = c;
             }
 
             // eightChars is full, begin proccessing
-            if (inPos == 8)
-            {
+            if (inPos == 8) {
                 // Send converted value to be printed.
                 binToInt = binaryToDecimal();
                 output(binToInt);
@@ -228,11 +219,9 @@ int readFile(char *filename){
             }
         }
 
-        else if(c == ' ' || c == '\n')
-        {
+        else if (c == ' ' || c == '\n') {
             // This is where padding of zeroes on the right would happen
-            if(inPos > 0)
-            {
+            if(inPos > 0) {
                 // Send converted value to be printed.
                 binToInt = binaryToDecimal();
                 output(binToInt);
@@ -244,8 +233,7 @@ int readFile(char *filename){
         }
 
         // Invalid input
-        else
-        {
+        else {
             printf("Invalid input.\n");
             receivedInvalidInput = 1;
             break;
@@ -253,8 +241,7 @@ int readFile(char *filename){
     }
 
     // Edge case where the last readable char is the last byte in the file.
-    if (inPos > 0 && !receivedInvalidInput)
-    {
+    if (inPos > 0 && !receivedInvalidInput) {
         // Send converted value to be printed.
         binToInt = binaryToDecimal();
         output(binToInt);
@@ -264,26 +251,25 @@ int readFile(char *filename){
     return 1;
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) 
+{
     int readFileSuccess;
     // check for no args
-    if (argc < 2)
-    {
+    if (argc < 2) {
         // exit prog.
         printf("No args found.\n");
     }
 
     // Check if input received from cmd, ignores empty input
-    else if(*argv[1] == '-' || *argv[1] != '\0')
-    {
+    else if (*argv[1] == '-' || *argv[1] != '\0') {
         // Try reading a file first.
         readFileSuccess = readFile(argv[1]);
 
         // If successful, end prog., otherwise, attempt to read cmd line for input.
         readFileSuccess == 1 ? printf("Read from file: %s \n", argv[1]) : inputData(argc, argv);
     }
-    else
-    {
+
+    else {
         // Invalid input
         printf("Invalid input.\n");
     }
