@@ -119,6 +119,8 @@ void inputData(int argc, char **argv){
     inPos = 0;
     arrIndex = 0;
     receivedInvalidInput = 0;
+
+    // Check if '-' was entered in cmd or not
     argPt = (*argv[1] == '-') ? 2 : 1;
 
     printf("Original ASCII    Decimal  Parity\n-------- -------- -------- --------\n");
@@ -196,7 +198,7 @@ int readFile(char *filename){
 
     // file not found
     if(filedes == -1){
-        printf("No file found. Checking argv for input...\n");
+        printf("No file found.\n");
         return 0;
     }
 
