@@ -32,7 +32,6 @@ void reportProcInfo(int childStatus, int cpid)
         printf("\n");
         _exit(EXIT_SUCCESS);
     }
-    
 }
 
 int main() 
@@ -63,6 +62,5 @@ int main()
     // Print END time
     sec = time(NULL);
     printf("END %d\n", sec);
-    
     return 0;
 }
