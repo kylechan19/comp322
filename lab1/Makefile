@@ -1,5 +1,5 @@
 # Name: Kyle Chan
-# Project: lab1, Time and Forking Children
+# Project: Lab 1: Forking and Children
 
 # This is a Makefile for my lab assignment. It allows me to easily and accurately rebuild
 # the lab assignment.
@@ -23,7 +23,7 @@ all: $(EXECUTABLES)
 
 # On the following lines (which _must_ start with a tab), are the commands I need to type -- 
 # each time my source file is modified.
-	$(EXECUTABLES): $(SRC)
+$(EXECUTABLES): $(SRC)
 	$(CC) $(CFLAGS) -c $(SRC)
 	$(CC) $(CFLAGS) -o $@ $(OBJ)
 
@@ -32,3 +32,4 @@ all: $(EXECUTABLES)
 # or intermediates.
 clean:
 	rm -f $(EXECUTABLES) $(OBJ) *~
+

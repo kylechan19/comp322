@@ -1,9 +1,0 @@
-Log:
-
-First Commit (18 Feb, 2020)
-	Set up the skeleton code and libraries that I believed that I would need.
-	I got compiler errors on some of the included libraries and saw that I would need to 
-	set up a linux subsystem to compile.
-Second Commit (24 Feb, 2020)
-	After setting up and figuring out how to use Ubuntu, I hacked away at the project, changing the source to only
-	have two methods: main and reportProcInfo.
