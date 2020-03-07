@@ -7,9 +7,9 @@
 
 # EXECUTABLES is a Make Variable (similar to an environment variable) that lists all the
 # "executables" associated with the lab. 
-EXECUTABLES=launch, tube
-SRC=launch.c, tube.c
-OBJ=launch.o, tube.o
+EXECUTABLES=launch tube
+SRC=launch.c tube.c
+OBJ=launch.o tube.o
 
 # The CC and CFLAGS variables are defined to ensure I'm using the native compiler and
 # that the correct command-line options are set
@@ -32,3 +32,4 @@ $(EXECUTABLES): $(SRC)
 # or intermediates.
 clean:
 	rm -f $(EXECUTABLES) $(OBJ) *~
+
