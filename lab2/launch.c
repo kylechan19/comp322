@@ -1,7 +1,7 @@
 /* Kyle Chan
     Lab 2: Launch-Tube, launch.c
     Prof. Benson
-    17 March, 2020 */
+    14 March, 2020 */
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -14,14 +14,15 @@ void childsPlay(int argc, char *argv[])
 {
     // Prepare new argv
     int i;
-    char *argvChild[argc];
+    char* args[argc-1];
 
-    for (i = 2; i < argc; i++) {
-        argvChild[i] = argv[i]; // Put args for child process
+    int j = 0;
+    for (i = 1; i < argc-1; i++) {
+        args[j] = argv[i]; // Put args for child process
+        j++;
     }
     // Child executes with supplied commands
-    fprintf(stderr, "huh\n");
-    execve(argv[1], argvChild, NULL);
+    execve(argv[1], args, NULL);
 }
 
 int main(int argc, char *argv[]) 

@@ -1,7 +1,7 @@
 /* Kyle Chan
     Lab 2: Launch-Tube, tube.c
     Prof. Benson
-    17 March, 2020 */
+    14 March, 2020 */
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -21,14 +21,10 @@ void childrensPlay()
     _exit(EXIT_SUCCESS);
 }
 
-int main(int argc, char *argv[]) 
+void forkin(char *argv[])
 {
     // Declare vars
     pid_t cpid1, cpid2;
-
-    if (argc < 2) {
-        printf("Not enough arguments");
-    }
 
     int pipefd[2];
     if (pipe(pipefd) == -1) { // Allocate pipe, Err check
@@ -55,9 +51,18 @@ int main(int argc, char *argv[])
         }
         else { // Still in parent
             fprintf(stderr, "CPID 1: %d\nCPID 2: %d", cpid1, cpid2); // Print cpids to stderr
-            
+            printf("s: %s", argv[1]);
         }
     }
+}
+
+int main(int argc, char *argv[]) 
+{
+    if (argc < 2) {
+        printf("Not enough arguments");
+    }
+    else
+        forkin(argv);
 
     return 0;
 }
