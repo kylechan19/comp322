@@ -17,7 +17,7 @@ void childsPlay(int argc, char *argv[])
     char* args[argc-1];
 
     int j = 0;
-    for (i = 1; i < argc-1; i++) {
+    for (i = 2; i < argc-2; i++) {
         args[j] = argv[i]; // Put args for child process
         j++;
     }
