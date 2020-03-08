@@ -13,11 +13,11 @@
 void childsPlay(int argc, char *argv[]) 
 {
     // Prepare new argv
-    int i;
-    char* args[argc-1];
+    int i, j;
+    char* args[argc-2];
 
-    int j = 0;
-    for (i = 2; i < argc-2; i++) {
+    j = 0;
+    for (i = 2; i < argc; i++) {
         args[j] = argv[i]; // Put args for child process
         j++;
     }
@@ -36,16 +36,13 @@ int main(int argc, char *argv[])
         perror("fork");
         exit(EXIT_FAILURE);
     } 
-    if (cpid == 0) { // In child proc.
-        if(argc > 1)
-            childsPlay(argc, argv);
-        else
-            printf("No additional arguments supplied.\n");
-    } 
-    else { // cpid > 0, in parent proc.
-        fprintf(stderr, "CPID: %d\n", cpid);
+    if (cpid > 0) { // In parent proc.
+        fprintf(stderr, "Launch CPID: %d\n", cpid);
         waitpid(cpid, &childStatus, 0); // Wait for child to finish
-        fprintf(stderr, "Child status: %d\n", childStatus);
+        fprintf(stderr, "Launch Child status: %d\n", childStatus);
+    } 
+    if (cpid == 0) { // In child proc.
+        childsPlay(argc, argv);
     }
     return 0;
 }
