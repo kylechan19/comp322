@@ -12,12 +12,12 @@
 
 void childrensPlay(char* args[], int argsLen)
 {
-    int pid = getpid();
+    //int pid = getpid();
     if (argsLen < 2) {
         printf("Not enough arguments CHILD.\n");
         exit(EXIT_FAILURE);
     }
-    printf("CPID: %d, execve\n", pid);
+    //printf("CPID: %d, execve\n", pid);
     execve(args[0], args, NULL); // Execute proc.
     perror("execve failed");
 }
@@ -70,12 +70,6 @@ void forkin(char* argv[], int argc)
         perror("pipe");
         exit(EXIT_FAILURE);
     }
-    int pipefd2[2];
-    if (pipe(pipefd2) == -1) { // Allocate pipe, Err check
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
-    
     cpid1 = fork(); // First fork
     if (cpid1 == -1) {// Err check
         perror("fork");
@@ -99,6 +93,13 @@ void forkin(char* argv[], int argc)
         childrensPlay(args1, firstCmdLen);
     }
     else { // In parent
+        // Close access to pipe #1
+        close(pipefd1[0]);
+        close(pipefd1[1]);
+        fprintf(stderr, "CPID1: %d\n", cpid1);
+        waitpid(cpid1, &childStatus, 0); // Wait for first child
+        fprintf(stderr, "CPID1 Status: %d\n", childStatus);
+
         cpid2 = fork();
         if (cpid2 == -1) { // Err check
             perror("fork");
@@ -116,21 +117,14 @@ void forkin(char* argv[], int argc)
             }
             //printf("Loop 4 args2[secondCmdLen:%d]: %s\n", secondCmdLen, args2[secondCmdLen]);
             // Go execve after pipe stuff
-            dup2(pipefd2[1], 2); //reader reads from stdout
-            close(pipefd2[1]);
+            dup2(pipefd1[1], 2); //reader reads from stdout
+            close(pipefd1[1]);
             childrensPlay(args2, secondCmdLen);
         }
         else { // Parent
-            // The parent closes both ends of the pipes
+            // The parent closes both ends of the pipe
             close(pipefd1[0]);
             close(pipefd1[1]);
-            close(pipefd2[0]);
-            close(pipefd2[1]);
-
-            fprintf(stderr, "CPID1: %d\n", cpid1);
-            waitpid(cpid1, &childStatus, 0); // Wait for first child
-            fprintf(stderr, "CPID1 Status: %d\n", childStatus);
-
             fprintf(stderr, "CPID2: %d\n", cpid2);
             waitpid(cpid2, &childStatus, 0); // Wait for second child
             fprintf(stderr, "CPID2 Status: %d\n", childStatus);
