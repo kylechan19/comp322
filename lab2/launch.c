@@ -14,10 +14,10 @@ void childsPlay(int argc, char *argv[])
 {
     // Prepare new argv
     int i, j;
-    char* args[argc-2];
+    char* args[argc-1];
 
     j = 0;
-    for (i = 2; i < argc; i++) {
+    for (i = 1; i < argc; i++) {
         args[j] = argv[i]; // Put args for child process
         j++;
     }
@@ -30,19 +30,24 @@ int main(int argc, char *argv[])
     // Declare vars
     int childStatus;
     pid_t cpid;
-
-    cpid = fork();
-    if (cpid == -1) { // Err check
-        perror("fork");
-        exit(EXIT_FAILURE);
-    } 
-    if (cpid > 0) { // In parent proc.
-        fprintf(stderr, "Launch CPID: %d\n", cpid);
-        waitpid(cpid, &childStatus, 0); // Wait for child to finish
-        fprintf(stderr, "Launch Child status: %d\n", childStatus);
-    } 
-    if (cpid == 0) { // In child proc.
-        childsPlay(argc, argv);
+    
+    if (argc < 2) {
+        printf("Too few arguments.\n");
+    }
+        else {
+        cpid = fork();
+        if (cpid == -1) { // Err check
+            perror("fork");
+            exit(EXIT_FAILURE);
+        } 
+        if (cpid > 0) { // In parent proc.
+            fprintf(stderr, "Launch CPID: %d\n", cpid);
+            wait(&childStatus); // Wait for child to finish
+            fprintf(stderr, "Launch Child Status: %d\n", childStatus);
+        } 
+        if (cpid == 0) { // In child proc.
+            childsPlay(argc, argv);
+        }
     }
     return 0;
 }

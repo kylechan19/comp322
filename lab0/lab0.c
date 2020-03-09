@@ -8,6 +8,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <math.h>
+#include <unistd.h>
 
 // declare global vars
 char eightChars[8];
@@ -274,6 +275,6 @@ int main(int argc, char **argv)
         printf("Invalid input.\n");
     }
 
-    printf("End of lab_0.");
+    printf("End of lab0.\n");
     return 0;
 }
