@@ -50,6 +50,7 @@ int getParity()
 {
     // Determines if an even or odd amount of 1's were read.
     int parity, i;
+    parity = 0;
     for (i = 0; i < 8; i++) {
         if (eightChars[i] == '1')
             parity++;

@@ -62,7 +62,7 @@ void forkin(char* argv[], int argc)
     char* args2[secondCmdLen+1];
     // MUST END WITH NULL TERMINATOR
     args1[firstCmdLen] = (char*)0;
-    args1[secondCmdLen] = (char*)0;
+    args2[secondCmdLen] = (char*)0;
 
     // PIPE STUFF
     int pipefd1[2];
@@ -88,7 +88,7 @@ void forkin(char* argv[], int argc)
         //printf("Loop 3 args1[firstCmdLen:%d]: %s\n", firstCmdLen, args1[firstCmdLen]);
 
         // Go execve after pipe stuff
-        dup2(pipefd1[1], 2); // writer reads from stdin (pipe) and writes to stderr
+        dup2(pipefd1[1], 2); // write to stderr
         close(pipefd1[1]);
         childrensPlay(args1, firstCmdLen);
     }
@@ -117,7 +117,7 @@ void forkin(char* argv[], int argc)
             }
             //printf("Loop 4 args2[secondCmdLen:%d]: %s\n", secondCmdLen, args2[secondCmdLen]);
             // Go execve after pipe stuff
-            dup2(pipefd1[1], 2); //reader reads from stdout
+            dup2(pipefd1[1], 2); // write to stderr
             close(pipefd1[1]);
             childrensPlay(args2, secondCmdLen);
         }
@@ -140,5 +140,6 @@ int main(int argc, char *argv[])
     else {
         forkin(argv, argc);
     }
+    printf("End of lab2.\n");
     return 0;
 }
