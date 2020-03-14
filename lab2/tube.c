@@ -75,18 +75,11 @@ void forkin(char* argv[], int argc)
             args1[i] = argv[j]; // Put args for child process
             i++;
         }
-        dup2(pipefd[1], 2); // Redirect stdout to stderr
-        close(pipefd[1]); // Close write end
+        dup2(pipefd[0], 0);
+        close(pipefd[1]);
         childrensPlay(args1, firstCmdLen); // Go execve()
     }
     else { // In parent
-        // The parent closes both ends of the pipe
-        close(pipefd[0]);
-        close(pipefd[1]);
-        fprintf(stderr, "CPID1: %d\n", cpid1); // Print first child pid
-        waitpid(cpid1, &childStatus, 0); // Wait for first child
-        fprintf(stderr, "CPID1 Status: %d\n", childStatus); // Print first child status
-
         // Fork second child
         cpid2 = fork();
         if (cpid2 == -1) { // Err check
@@ -101,8 +94,8 @@ void forkin(char* argv[], int argc)
                     args2[i] = argv[k]; // Put args for child process
                     i++;
                 }
-                dup2(pipefd[1], 2); // Redirect stdout to stderr
-                close(pipefd[1]); // Close write end
+                dup2(pipefd[1], 2);
+                close(pipefd[0]);
                 childrensPlay(args2, secondCmdLen); // Go execve()
             }
             else {
@@ -110,11 +103,14 @@ void forkin(char* argv[], int argc)
             }
         }
         else { // Parent
-            // The parent closes both ends of the pipe
+            fprintf(stderr, "CPID1: %d\n", cpid1); // Print first child pid
+            fprintf(stderr, "CPID2: %d\n", cpid2); // Print second child pid
+            // The parent closes access to pipe
             close(pipefd[0]);
             close(pipefd[1]);
-            fprintf(stderr, "CPID2: %d\n", cpid2); // Print second child pid
+            waitpid(cpid1, &childStatus, 0); // Wait for first child
             waitpid(cpid2, &childStatus, 0); // Wait for second child
+            fprintf(stderr, "CPID1 Status: %d\n", childStatus); // Print first child status
             fprintf(stderr, "CPID2 Status: %d\n", childStatus); // Print second child status
         }
     }
