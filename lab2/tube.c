@@ -12,24 +12,70 @@
 
 void childrensPlay(char* args[], int argsLen)
 {
-    if (argsLen < 1) { // Check argument length in child process
+    if (argsLen > 0) { // Check argument length in child process
+        execve(args[0], args, NULL); // Execute proc.
+        perror("execve failed");
+        
+    }
+    else {
         printf("Not enough arguments CHILD.\n");
         _exit(EXIT_FAILURE);
     }
-    execve(args[0], args, NULL); // Execute proc.
-    perror("execve failed");
 }
 
-void forkin(char* argv[], int argc)
+void forkin(char* args1[], int argsLen, int pipefd[])
+{
+    pid_t cpid1;
+    switch (cpid1 = fork()) { // First fork
+        case -1: // ERROR first child
+            perror("fork");
+            exit(EXIT_FAILURE);
+        default: // Parent
+            break;
+        case 0: // First child
+            if (argsLen > 0) {
+                dup2(pipefd[1], 1); // Change stdout to write end of pipe
+                close(pipefd[0]); // Close unneeded read end of pipe in THIS CHILD
+                childrensPlay(args1, argsLen); // Go execve()
+            }
+            else {
+                fprintf(stderr, "Not enough arguments PID: %d\n", getpid());
+                _exit(EXIT_FAILURE);
+            }
+    }
+}
+
+void forkinAgain(char* args2[], int argsLen, int pipefd[]) 
+{
+    pid_t cpid2;
+    switch (cpid2 = fork()) { // Second fork
+        case -1: // ERROR Second child
+            perror("fork");
+            exit(EXIT_FAILURE);
+        default: // Parent
+            break;
+        case 0: // second child
+            if (argsLen > 0) {
+                dup2(pipefd[0], 0); // Change stdin to read end of pipe
+                close(pipefd[1]); // Close unneeded write end of pipe in THIS CHILD
+                childrensPlay(args2, argsLen); // Go execve()
+            } 
+            else {
+                fprintf(stderr, "Not enough arguments PID: %d\n", getpid());
+                _exit(EXIT_FAILURE);
+            }
+    }
+}
+
+int main(int argc, char *argv[]) 
 {
     // Declare vars
-    int i, j, k, firstCmdLen, secondCmdLen, childStatus;
-    pid_t cpid1, cpid2;
+    int i, j, k, firstCmdLen, secondCmdLen, childStatus, cpid;
+    int pipefd[2];
 
-    // Init. because compiler complains
+    // Init. These values need to be 0 by default, in case not enough args are passed in
     firstCmdLen = 0;
     secondCmdLen = 0;
-    j = 0;
 
     /* This loop is set up for the first set of args and stops if we only receive one cmd,
         or if we hit the comma separator from the usage examples. */
@@ -57,77 +103,43 @@ void forkin(char* argv[], int argc)
     args1[firstCmdLen] = (char*)0;
     args2[secondCmdLen] = (char*)0;
 
-    // PIPE STUFF
-    int pipefd[2];
-    if (pipe(pipefd) == -1) { // Allocate pipe, Err check
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
-    cpid1 = fork(); // First fork
-    if (cpid1 == -1) {// Err check
-        perror("fork");
-        exit(EXIT_FAILURE);
-    } 
-    else if (cpid1 == 0) { // First child, close stdout and replace with pipe, then execve
-        // Set up new args for exec
+    // Set up new args for first child
+    if (firstCmdLen > 0) {
         i = 0;
         for (j = 1; i < firstCmdLen; j++) {
             args1[i] = argv[j]; // Put args for child process
+                i++;
+            }
+    }
+    else {
+        fprintf(stderr, "Not enough arguments for the first child.\n");
+    }
+
+    // Set up args for the second child
+    if (secondCmdLen > 0) {
+        i = 0;
+        for (k = firstCmdLen+2; i < secondCmdLen; k++) { // k = that value to skip argv[0] and ','
+            args2[i] = argv[k]; // Put args for child process
             i++;
         }
-        dup2(pipefd[0], 0);
-        close(pipefd[1]);
-        childrensPlay(args1, firstCmdLen); // Go execve()
     }
-    else { // In parent
-        fprintf(stderr, "CPID1: %d\n", cpid1); // Print first child pid
-        // The parent closes access to pipe
-        close(pipefd[0]);
-        close(pipefd[1]);
-        waitpid(cpid1, &childStatus, 0); // Wait for first child
-        fprintf(stderr, "CPID1 Status: %d\n", childStatus); // Print first child status
-        
-        // Fork second child
-        cpid2 = fork();
-        if (cpid2 == -1) { // Err check
-            perror("fork");
-            exit(EXIT_FAILURE);
-        }
-        else if (cpid2 == 0) { // Second child, close stdin and replace with pipe, then exec
-            // Set up args for the second child
-            if (secondCmdLen > 0) { // Check if second set of args was passed in
-                i = 0;
-                for (k = firstCmdLen+2; i < secondCmdLen; k++) {
-                    args2[i] = argv[k]; // Put args for child process
-                    i++;
-                }
-                dup2(pipefd[1], 2);
-                close(pipefd[0]);
-                childrensPlay(args2, secondCmdLen); // Go execve()
-            }
-            else {
-                fprintf(stderr, "No arguments for child 2.\n");
-            }
-        }
-        else { // Parent
-            // The parent closes access to pipe
-            close(pipefd[0]);
-            close(pipefd[1]);
-            fprintf(stderr, "CPID2: %d\n", cpid2); // Print second child pid
-            waitpid(cpid2, &childStatus, 0); // Wait for second child
-            fprintf(stderr, "CPID2 Status: %d\n", childStatus); // Print second child status
-        }
+    else {
+        fprintf(stderr, "Not enough arguments for second child.\n");
     }
-}
 
-int main(int argc, char *argv[]) 
-{
+    // The juicy part of the program
     if (argc < 2) {
         printf("Not enough arguments MAIN.\n");
     }
     else {
-        forkin(argv, argc);
+        pipe(pipefd); // Allocate pipe
+        forkin(args1, firstCmdLen, pipefd); // Fork first child
+        forkinAgain(args2, secondCmdLen, pipefd); // Fork second child
+        close(pipefd[0]); // The parent closes BOTH ends of the pipe
+        close(pipefd[1]);
+        while ((cpid = wait(&childStatus)) != -1) // Parent waits for children to finish
+		    fprintf(stderr, "PID: %d\nStatus: %d\n", cpid, WEXITSTATUS(childStatus)); // print pid and retval of child
     }
-    printf("End of lab2.\n");
+    fprintf(stderr, "End of lab2-tube.\n");
     return 0;
 }

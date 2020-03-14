@@ -49,5 +49,6 @@ int main(int argc, char *argv[])
             childsPlay(argc, argv);
         }
     }
+    fprintf(stderr, "End of lab2-launch.\n");
     return 0;
 }
