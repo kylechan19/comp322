@@ -80,6 +80,13 @@ void forkin(char* argv[], int argc)
         childrensPlay(args1, firstCmdLen); // Go execve()
     }
     else { // In parent
+        fprintf(stderr, "CPID1: %d\n", cpid1); // Print first child pid
+        // The parent closes access to pipe
+        close(pipefd[0]);
+        close(pipefd[1]);
+        waitpid(cpid1, &childStatus, 0); // Wait for first child
+        fprintf(stderr, "CPID1 Status: %d\n", childStatus); // Print first child status
+        
         // Fork second child
         cpid2 = fork();
         if (cpid2 == -1) { // Err check
@@ -103,14 +110,11 @@ void forkin(char* argv[], int argc)
             }
         }
         else { // Parent
-            fprintf(stderr, "CPID1: %d\n", cpid1); // Print first child pid
-            fprintf(stderr, "CPID2: %d\n", cpid2); // Print second child pid
             // The parent closes access to pipe
             close(pipefd[0]);
             close(pipefd[1]);
-            waitpid(cpid1, &childStatus, 0); // Wait for first child
+            fprintf(stderr, "CPID2: %d\n", cpid2); // Print second child pid
             waitpid(cpid2, &childStatus, 0); // Wait for second child
-            fprintf(stderr, "CPID1 Status: %d\n", childStatus); // Print first child status
             fprintf(stderr, "CPID2 Status: %d\n", childStatus); // Print second child status
         }
     }
