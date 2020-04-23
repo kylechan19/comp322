@@ -34,7 +34,6 @@ void sig_handler(int signum)
 
 void printSig(int signum) 
 {
-    //printf("%s\n", strsignal(sigs[signum]));
     printf("SIG%s caught at %ti\n", inputs[signum], time(NULL));
     sigCount++;
 }
@@ -43,34 +42,28 @@ void parseCmd(int argc, char *argv[])
 {
     int i, j, successiveTerm, termCount;
     successiveTerm = 0;
-
-    // Loop through argv
-    for (i = 1; i < argc; i++) {
-        // Loop through listed signals.
-        for (j = 0; j < SIGS_LEN; j++) {
-            // Catch IOT or IO and map to ABRT
-            if (strcmp(argv[i], "IOT") == 0 || strcmp(argv[i], "IO") == 0) {
+    
+    for (i = 1; i < argc; i++) { // Loop through argv
+        for (j = 0; j < SIGS_LEN; j++) { // Loop through listed signals.
+            if (strcmp(argv[i], "IOT") == 0 || strcmp(argv[i], "IO") == 0) { // Catch IOT or IO and map to ABRT
                 signal(SIGABRT, sig_handler);
                 printSig(5);
                 break;
             }
-            else if (strcmp(argv[i], inputs[j]) == 0) {
+            else if (strcmp(argv[i], inputs[j]) == 0) { // Catch any other signal and output result.
                 signal(sigs[j], sig_handler);
                 printSig(j);
                 break;
             }
         }
-        // Toggle to detect successive TERM
-        successiveTerm = (j == 14) ? 1 : 0;
-
+        successiveTerm = (j == 14) ? 1 : 0; // Toggle to detect successive TERM
         if (successiveTerm) {
             termCount++;
         } 
         else {
             termCount = 0;
         }
-        // Received three successive TERM
-        if (termCount == 3) {
+        if (termCount == 3) { // Received three successive TERM
             break;
         }
     }

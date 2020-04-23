@@ -1,0 +1,11 @@
+https://github.com/kylechan19/comp322
+kyle.chan.871@my.csun.edu 
+109744256
+
+Log:
+
+22 April, 2020
+	Complete the entirety of lab 3.
+
+23 April, 2020
+	Touch-ups for submission.
