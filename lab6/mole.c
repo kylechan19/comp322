@@ -10,10 +10,10 @@
 
 int main(int argc, char *argv[])
 {
-    char *moleDirectory;
-    char buffer[4096];
-	moleDirectory = getcwd(buffer, 4096);
-    printf("%s\n", moleDirectory);
+    // char *moleDirectory;
+    // char buffer[4096];
+	// moleDirectory = getcwd(buffer, 4096);
+    // printf("%s\n", moleDirectory);
     if (argc < 2) {
         exit(EXIT_FAILURE);
     }

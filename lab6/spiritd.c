@@ -54,13 +54,13 @@ void sig_handler(int signum)
 
 int main(void)
 {
-    //int i;
+    int i;
     struct rlimit rl;
     // Saves the absolute directory of moles
 	char buffer[4096];
 	moleDirectory = getcwd(buffer, 4096);
     //printf("%s\n", moleDirectory);
-    //umask(0); // Clear file creation mask
+    umask(0); // Clear file creation mask
 
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
         exit(EXIT_FAILURE);
@@ -75,12 +75,12 @@ int main(void)
             // Close all open file descriptors
             if (rl.rlim_max == RLIM_INFINITY)
             rl.rlim_max = 1024;
-            // for (i = 0; (unsigned) i < rl.rlim_max; i++)
-            //     close(i);
+            for (i = 0; (unsigned) i < rl.rlim_max; i++)
+                close(i);
 
-            // open("/dev/null", O_RDWR);
-            // dup(0);
-            // dup(0);
+            open("/dev/null", O_RDWR);
+            dup(0);
+            dup(0);
 
 	        signal(SIGUSR1, sig_handler);
 	        signal(SIGUSR2, sig_handler);
