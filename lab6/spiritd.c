@@ -15,7 +15,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-char* moleDirectory;
+char *moleDirectory;
+char logfileDirectory[1024];
 pid_t cpid1;
 
 typedef void (*sighandler_t)(int);
@@ -27,12 +28,14 @@ void sig_handler(int signum)
 		exit(EXIT_SUCCESS);
 	}
 
+    int random;
+    char* moleNumber;
+    random = rand() % 2;
+	moleNumber = random == 1 ? "mole1" : "mole2";
+
 	if (signum == SIGUSR1 || signum == SIGUSR2){
 		pid_t mole;
-        char *moleNumber;
-        int random;
         char *args[4];
-		
 		switch (mole = fork()) { // fork
             case -1: // ERROR child
                 perror("fork");
@@ -41,12 +44,10 @@ void sig_handler(int signum)
                 cpid1 = mole;
                 break;
             case 0: // Child
-			    random = rand() % 2;
-                moleNumber = random == 1 ? "mole1" : "mole2";
 			    args[0] = strcat(moleDirectory, "/moles");
-			    args[1] = moleNumber;
-                args[2] = moleDirectory;
-			    args[3] = '\0';
+                args[1] = moleNumber;
+                args[2] = logfileDirectory;
+                args[3] = '\0';
 			    execve(args[0], args, NULL);
 		}
 	}
@@ -59,33 +60,36 @@ int main(void)
     // Saves the absolute directory of moles
 	char buffer[4096];
 	moleDirectory = getcwd(buffer, 4096);
-    //printf("%s\n", moleDirectory);
+	strcpy(logfileDirectory, moleDirectory);
+	strcat(logfileDirectory, "/lab6.txt");
+    // printf("%s\n", moleDirectory);
+    // printf("%s\n", logfileDirectory);
     umask(0); // Clear file creation mask
 
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
         exit(EXIT_FAILURE);
-    switch (cpid1 = fork()) { // fork
-        case -1: // ERROR child
-            exit(EXIT_FAILURE);
-        default: // Parent
-            exit(0); // Parent exits after fork()
-        case 0:
-            setsid(); // Create new session
-            chdir("/"); // Change cwd
-            // Close all open file descriptors
-            if (rl.rlim_max == RLIM_INFINITY)
-            rl.rlim_max = 1024;
-            for (i = 0; (unsigned) i < rl.rlim_max; i++)
-                close(i);
+    cpid1 = fork(); // fork
+    if (cpid1 < 0) 
+        exit(EXIT_FAILURE);
+    else if (cpid1 > 0) // Parent
+         exit(EXIT_SUCCESS); // Parent exits after fork()
 
-            open("/dev/null", O_RDWR);
-            dup(0);
-            dup(0);
+    setsid(); // Create new session
+    chdir("/"); // Change cwd
+    // Close all open file descriptors
+    if (rl.rlim_max == RLIM_INFINITY)
+        rl.rlim_max = 1024;
+    for (i = 0; (unsigned) i < rl.rlim_max; i++)
+        close(i);
 
-	        signal(SIGUSR1, sig_handler);
-	        signal(SIGUSR2, sig_handler);
-            signal(SIGTERM, sig_handler);
-    }
+    open("/dev/null", O_RDWR);
+    dup(0);
+    dup(0);
+
+	signal(SIGUSR1, sig_handler);
+	signal(SIGUSR2, sig_handler);
+    signal(SIGTERM, sig_handler);
+
     while (1) {
 		pause();
 	}

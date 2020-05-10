@@ -10,14 +10,11 @@
 
 int main(int argc, char *argv[])
 {
-    // char *moleDirectory;
-    // char buffer[4096];
-	// moleDirectory = getcwd(buffer, 4096);
-    // printf("%s\n", moleDirectory);
     if (argc < 2) {
         exit(EXIT_FAILURE);
     }
-    FILE *logfile = fopen("./lab6.txt", "a+");
+
+    FILE *logfile = fopen(argv[2], "a+");
 	fprintf(logfile, "Pop %s\n", argv[1]);
-    fclose(logfile);
+    fclose(logfile); 
 }
